@@ -29,5 +29,5 @@
     "purescript-probability": "~0.0.1",
     "purescript-quickcheck": "~0.5.0"
   },
-  "version": "0.0.1"
+  "version": "0.0.2"
 }
