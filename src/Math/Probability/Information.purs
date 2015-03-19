@@ -5,10 +5,9 @@ import Math
 import Math.Probability
 
 newtype Entropy = Entropy Number
-entropyNum = Iso (\(Entropy e) -> e) Entropy
 
-nonCond :: forall a b c. ((Dist Unit) -> (Unit -> Dist b) -> c) -> Dist b -> c
-nonCond f d = f (pure unit) (const d)
+selfInformation :: Prob -> Entropy
+selfInformation = from entropyNum <<< negate <<< log2 <<< runProb
 
 entropy :: forall x z. (Eq x) => Dist z -> (z -> Dist x) -> Entropy
 entropy zs x'zs = expected entropyNum $ do
@@ -34,15 +33,6 @@ mutualInformation zs xys'z jx jy = expected entropyNum $ do
                               ((==) (jx xy'z) <<< jx ?? xys'z z)
                               ((==) (jy xy'z) <<< jy ?? xys'z z)
 
-log2 :: Number -> Number
-log2 = logBase 2
-
-logBase :: Number -> Number -> Number
-logBase b n = log n / log b
-
-selfInformation :: Prob -> Entropy
-selfInformation = from entropyNum <<< negate <<< log2 <<< runProb
-
 divergence :: forall x z. (Eq x) =>
               Dist z -> (z -> Dist x) -> (z -> Dist x) -> Entropy
 divergence zs x'zs y'zs = expected entropyNum $ do
@@ -51,6 +41,15 @@ divergence zs x'zs y'zs = expected entropyNum $ do
   let px'z = just x'z ?? x'zs z
   let py'z = just x'z ?? y'zs z
   pure <<< from entropyNum <<< log2 $ runProb px'z / runProb py'z
+
+-- | Helper function for using `entropy` and `mutualInformation` with
+-- | non-conditional distributions.
+nonCond :: forall a b c. ((Dist Unit) -> (Unit -> Dist b) -> c) -> Dist b -> c
+nonCond f d = f (pure unit) (const d)
+
+entropyNum = Iso (\(Entropy e) -> e) Entropy
+log2 = logBase 2
+logBase b n = log n / log b
 
 instance eqEnt :: Eq Entropy where
   (==) (Entropy a) (Entropy b) = a == b

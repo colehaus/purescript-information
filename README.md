@@ -10,10 +10,10 @@ newtype Entropy
 ```
 
 
-#### `nonCond`
+#### `selfInformation`
 
 ``` purescript
-nonCond :: forall a b c. (Dist Unit -> (Unit -> Dist b) -> c) -> Dist b -> c
+selfInformation :: Prob -> Entropy
 ```
 
 
@@ -38,33 +38,21 @@ mutualInformation :: forall j x y z. (Eq x, Eq y, Eq j) => Dist z -> (z -> Dist 
 ```
 
 
-#### `log2`
-
-``` purescript
-log2 :: Number -> Number
-```
-
-
-#### `logBase`
-
-``` purescript
-logBase :: Number -> Number -> Number
-```
-
-
-#### `selfInformation`
-
-``` purescript
-selfInformation :: Prob -> Entropy
-```
-
-
 #### `divergence`
 
 ``` purescript
 divergence :: forall x z. (Eq x) => Dist z -> (z -> Dist x) -> (z -> Dist x) -> Entropy
 ```
 
+
+#### `nonCond`
+
+``` purescript
+nonCond :: forall a b c. (Dist Unit -> (Unit -> Dist b) -> c) -> Dist b -> c
+```
+
+Helper function for using `entropy` and `mutualInformation` with
+non-conditional distributions.
 
 #### `eqEnt`
 
