@@ -3,10 +3,10 @@
   "homepage": "https://github.com/pseudonom/purescript-information",
   "description": "Shannon entropy and related functions for discrete random variables.",
   "keywords": [
-      "purescript",
-      "information",
-      "shannon",
-      "entropy"
+    "purescript",
+    "information",
+    "shannon",
+    "entropy"
   ],
   "authors": [
     "pseudonom <escalier@riseup.net>"
@@ -28,5 +28,6 @@
     "purescript-math": "~0.1.0",
     "purescript-probability": "~0.0.1",
     "purescript-quickcheck": "~0.5.0"
-  }
+  },
+  "version": "0.0.1"
 }
