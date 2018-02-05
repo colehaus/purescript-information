@@ -1,8 +1,9 @@
 module Math.Probability.Information where
 
-import Math
+import Math (log)
+import Prelude
 
-import Math.Probability
+import Math.Probability (Dist, Iso(..), Prob, expected, from, just, runProb, (??))
 
 newtype Entropy = Entropy Number
 
@@ -24,7 +25,7 @@ pointwiseInformation pxy'z px'z py'z =
     y = runProb py'z
 
 mutualInformation ::
-  forall j x y z. (Eq x, Eq y, Eq j) =>
+  forall j x y z. Eq x => Eq y => Eq j =>
   Dist z -> (z -> Dist j) -> (j -> x) -> (j -> y)  -> Entropy
 mutualInformation zs xys'z jx jy = expected entropyNum $ do
   z <- zs
@@ -44,16 +45,18 @@ divergence zs x'zs y'zs = expected entropyNum $ do
 
 -- | Helper function for using `entropy` and `mutualInformation` with
 -- | non-conditional distributions.
-nonCond :: forall a b c. ((Dist Unit) -> (Unit -> Dist b) -> c) -> Dist b -> c
+nonCond :: forall b c. (Dist Unit -> (Unit -> Dist b) -> c) -> Dist b -> c
 nonCond f d = f (pure unit) (const d)
 
+entropyNum :: Iso Entropy Number
 entropyNum = Iso (\(Entropy e) -> e) Entropy
-log2 = logBase 2
+log2 :: Number -> Number
+log2 = logBase 2.0
+logBase :: Number -> Number -> Number
 logBase b n = log n / log b
 
 instance eqEnt :: Eq Entropy where
-  (==) (Entropy a) (Entropy b) = a == b
-  (/=) a b = not $ a == b
+  eq (Entropy a) (Entropy b) = a == b
 instance ordEnt :: Ord Entropy where
   compare (Entropy a) (Entropy b) = compare a b
 instance showEnt :: Show Entropy where
