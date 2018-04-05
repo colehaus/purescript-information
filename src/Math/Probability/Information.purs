@@ -1,14 +1,15 @@
 module Math.Probability.Information where
 
+import Data.Newtype (class Newtype, unwrap, wrap)
 import Math (log)
 import Prelude
 
-import Math.Probability (Dist, Iso(..), Prob, expected, from, just, runProb, (??))
+import Math.Probability (Dist, Iso, Prob, expected, just, runProb, (??))
 
 newtype Entropy = Entropy Number
 
 selfInformation :: Prob -> Entropy
-selfInformation = from entropyNum <<< negate <<< log2 <<< runProb
+selfInformation = entropyNum.from <<< negate <<< log2 <<< runProb
 
 entropy :: forall x z. (Eq x) => Dist z -> (z -> Dist x) -> Entropy
 entropy zs x'zs = expected entropyNum $ do
@@ -19,7 +20,7 @@ entropy zs x'zs = expected entropyNum $ do
 
 pointwiseInformation :: Prob -> Prob -> Prob -> Entropy
 pointwiseInformation pxy'z px'z py'z =
-  from entropyNum $ log2 (xy / (x * y)) where
+  entropyNum.from $ log2 (xy / (x * y)) where
     xy = runProb pxy'z
     x = runProb px'z
     y = runProb py'z
@@ -41,7 +42,7 @@ divergence zs x'zs y'zs = expected entropyNum $ do
   x'z <- x'zs z
   let px'z = just x'z ?? x'zs z
   let py'z = just x'z ?? y'zs z
-  pure <<< from entropyNum <<< log2 $ runProb px'z / runProb py'z
+  pure <<< entropyNum.from <<< log2 $ runProb px'z / runProb py'z
 
 -- | Helper function for using `entropy` and `mutualInformation` with
 -- | non-conditional distributions.
@@ -49,15 +50,13 @@ nonCond :: forall b c. (Dist Unit -> (Unit -> Dist b) -> c) -> Dist b -> c
 nonCond f d = f (pure unit) (const d)
 
 entropyNum :: Iso Entropy Number
-entropyNum = Iso (\(Entropy e) -> e) Entropy
+entropyNum = { from: wrap, to: unwrap }
 log2 :: Number -> Number
 log2 = logBase 2.0
 logBase :: Number -> Number -> Number
 logBase b n = log n / log b
 
-instance eqEnt :: Eq Entropy where
-  eq (Entropy a) (Entropy b) = a == b
-instance ordEnt :: Ord Entropy where
-  compare (Entropy a) (Entropy b) = compare a b
-instance showEnt :: Show Entropy where
-  show (Entropy n) = "Entropy " <> show n
+derive instance ntEnt :: Newtype Entropy _
+derive newtype instance eqEnt :: Eq Entropy
+derive newtype instance ordEnt :: Ord Entropy
+derive newtype instance showEnt :: Show Entropy
