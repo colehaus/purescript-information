@@ -1,6 +1,6 @@
 {
   "name": "purescript-information",
-  "homepage": "https://github.com/pseudonom/purescript-information",
+  "homepage": "https://github.com/colehaus/purescript-information",
   "description": "Shannon entropy and related functions for discrete random variables.",
   "keywords": [
     "purescript",
@@ -9,11 +9,11 @@
     "entropy"
   ],
   "authors": [
-    "pseudonom <escalier@riseup.net>"
+    "Cole Haus <colehaus@cryptolab.net>"
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/pseudonom/purescript-information.git"
+    "url": "https://github.com/colehaus/purescript-information.git"
   },
   "license": "AGPL-3.0",
   "ignore": [
