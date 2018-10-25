@@ -4,15 +4,20 @@ import Data.Newtype (class Newtype, unwrap, wrap)
 import Math (log)
 import Prelude
 
-import Math.Probability (Dist, Iso, Prob, expected, just, runProb, (??))
+import Math.Probability (Iso, expected, just, (??))
+import Math.Probability.Dist (Dist)
+import Math.Probability.Prob.Number (Prob(..))
 
-newtype Entropy = Entropy Number
+newtype Entropy = MkEntropy Number
+derive newtype instance semiringEntropy :: Semiring Entropy
+
+type Dist' = Dist Prob
 
 selfInformation :: Prob -> Entropy
-selfInformation = entropyNum.from <<< negate <<< log2 <<< runProb
+selfInformation = entropyNum.from <<< negate <<< log2 <<< unwrap
 
-entropy :: forall x z. (Eq x) => Dist z -> (z -> Dist x) -> Entropy
-entropy zs x'zs = expected entropyNum $ do
+entropy :: forall x z. Ord x => Dist' z -> (z -> Dist' x) -> Entropy
+entropy zs x'zs = expected (\(MkProb p) -> MkEntropy p) $ do
   z <- zs
   x'z <- x'zs z
   let px'z = just x'z ?? x'zs z
@@ -21,32 +26,34 @@ entropy zs x'zs = expected entropyNum $ do
 pointwiseInformation :: Prob -> Prob -> Prob -> Entropy
 pointwiseInformation pxy'z px'z py'z =
   entropyNum.from $ log2 (xy / (x * y)) where
-    xy = runProb pxy'z
-    x = runProb px'z
-    y = runProb py'z
+    xy = unwrap pxy'z
+    x = unwrap px'z
+    y = unwrap py'z
 
 mutualInformation ::
-  forall j x y z. Eq x => Eq y => Eq j =>
-  Dist z -> (z -> Dist j) -> (j -> x) -> (j -> y)  -> Entropy
-mutualInformation zs xys'z jx jy = expected entropyNum $ do
+  forall j x y z. Eq x => Eq y => Ord j =>
+  Dist' z -> (z -> Dist' j) -> (j -> x) -> (j -> y) -> Entropy
+mutualInformation zs xys'z jx jy = expected (MkEntropy <<< unwrap) $ do
   z <- zs
   xy'z <- xys'z z
   pure $ pointwiseInformation (just xy'z ?? xys'z z)
                               ((==) (jx xy'z) <<< jx ?? xys'z z)
                               ((==) (jy xy'z) <<< jy ?? xys'z z)
 
-divergence :: forall x z. (Eq x) =>
-              Dist z -> (z -> Dist x) -> (z -> Dist x) -> Entropy
-divergence zs x'zs y'zs = expected entropyNum $ do
+divergence :: forall x z. Ord x =>
+              Dist' z -> (z -> Dist' x) -> (z -> Dist' x) -> Entropy
+divergence zs x'zs y'zs = expected (MkEntropy <<< unwrap) $ do
   z <- zs
   x'z <- x'zs z
   let px'z = just x'z ?? x'zs z
   let py'z = just x'z ?? y'zs z
-  pure <<< entropyNum.from <<< log2 $ runProb px'z / runProb py'z
+  pure <<< entropyNum.from <<< log2 $ unwrap px'z / unwrap py'z
+
+
 
 -- | Helper function for using `entropy` and `mutualInformation` with
 -- | non-conditional distributions.
-nonCond :: forall b c. (Dist Unit -> (Unit -> Dist b) -> c) -> Dist b -> c
+nonCond :: forall b c. (Dist' Unit -> (Unit -> Dist' b) -> c) -> Dist' b -> c
 nonCond f d = f (pure unit) (const d)
 
 entropyNum :: Iso Entropy Number
